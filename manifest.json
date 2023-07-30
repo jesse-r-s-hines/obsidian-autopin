@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-autopin",
-	"name": "AutoPin",
-	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Automatically pin new tabs",
-	"author": "Jesse Hines",
-	"authorUrl": "https://github.com/jesse-r-s-hines",
-	"isDesktopOnly": false
+    "id": "obsidian-autopin",
+    "name": "AutoPin",
+    "version": "1.0.0",
+    "minAppVersion": "0.15.0",
+    "description": "Automatically pin new tabs",
+    "author": "Jesse Hines",
+    "authorUrl": "https://github.com/jesse-r-s-hines",
+    "isDesktopOnly": true
 }
