@@ -54,7 +54,6 @@ export default class AutoPinPlugin extends Plugin {
             leaf.on('pinned-change', this.onPinnedChangedHandler, {plugin: this, leaf: leaf})
             this.seenLeaves.add(leaf)
         }
-        this.registerEvent
     }
 
 
