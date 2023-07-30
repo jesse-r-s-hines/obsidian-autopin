@@ -15,6 +15,9 @@ export default class AutoPinPlugin extends Plugin {
      */
     seenLeaves: WeakSet<WorkspaceLeaf> = new WeakSet()
 
+    /** These leaves can be unpinned without getting autoclosed */
+    dontAutoClose: Set<WorkspaceLeaf> = new Set()
+
     /** 
      * Return true if this is a basic navigation link that should have autopin behavior.
      * We don't want to autopin the sidebar panels or the blank "New Tab" page
@@ -22,7 +25,6 @@ export default class AutoPinPlugin extends Plugin {
     private isBasicTab = (leaf?: WorkspaceLeaf|null): leaf is WorkspaceLeaf => {
         return !!(leaf && leaf.view.navigation && leaf.view.getViewType() != "empty")
     }
-
 
     /** Get leaves for the same file as leaf (not including leaf itself) */
     private getDuplicateLeaves = (leaf: WorkspaceLeaf) => {
@@ -42,7 +44,7 @@ export default class AutoPinPlugin extends Plugin {
     }
 
     private onPinnedChangedHandler = function(this: PinnedChangedHandlerContext, pinned: boolean) {
-        if (this.plugin.settings.closeOnUnpin && !pinned) {
+        if (this.plugin.settings.closeOnUnpin && !pinned && !this.plugin.dontAutoClose.has(this.leaf)) {
             this.leaf.detach() // detach means close
         }
     }
@@ -56,6 +58,13 @@ export default class AutoPinPlugin extends Plugin {
         }
     }
 
+    /** Unpin a leaf without triggering the auto close */
+    private unpin = (leaf: WorkspaceLeaf) => {
+        // disable the handler temporarily
+        this.dontAutoClose.add(leaf)
+        leaf.setPinned(false)
+        this.dontAutoClose.delete(leaf)
+    }
 
     async onload() {
         await this.loadSettings();
@@ -75,6 +84,31 @@ export default class AutoPinPlugin extends Plugin {
                     } else {
                         this.autoPin(leaf)
                     }
+                }
+            }))
+
+            this.registerEvent(this.app.workspace.on('file-menu', (menu, file, source, leaf) => {
+                // Hack to make close all etc. work even when tabs are pinned
+                if (this.settings.closeOnUnpin) {
+                    (menu as any).items.forEach((item: any) => {
+                        if (item.section == 'close') {
+                            const originalCallback = item.callback
+                            item.onClick((evt: any) => {
+                                console.log("HERE")
+                                this.app.workspace.iterateAllLeaves(leaf => {
+                                    if (this.isBasicTab(leaf)) {
+                                        this.unpin(leaf)
+                                    }
+                                })
+                                originalCallback(evt)
+                                this.app.workspace.iterateAllLeaves(leaf => {
+                                    if (this.isBasicTab(leaf)) {
+                                        leaf.setPinned(true)
+                                    }
+                                })
+                            })
+                        }
+                    });
                 }
             }))
         })
