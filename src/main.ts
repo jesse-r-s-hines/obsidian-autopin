@@ -19,7 +19,7 @@ export default class AutoPinPlugin extends Plugin {
      * Return true if this is a basic navigation link that should have autopin behavior.
      * We don't want to autopin the sidebar panels or the blank "New Tab" page
      */
-    private isBasicLeaf = (leaf?: WorkspaceLeaf|null): leaf is WorkspaceLeaf => {
+    private isBasicTab = (leaf?: WorkspaceLeaf|null): leaf is WorkspaceLeaf => {
         return !!(leaf && leaf.view.navigation && leaf.view.getViewType() != "empty")
     }
 
@@ -29,7 +29,7 @@ export default class AutoPinPlugin extends Plugin {
         const duplicates: WorkspaceLeaf[] = []
         this.app.workspace.iterateAllLeaves((l) => {
             if (
-                leaf !== l && this.isBasicLeaf(l)
+                leaf !== l && this.isBasicTab(l)
                 && leaf.view.getState().file == l.view.getState().file
                 && leaf.view.getViewType() == l.view.getViewType()
             ) {
@@ -49,7 +49,7 @@ export default class AutoPinPlugin extends Plugin {
 
     /** Pin leaf if it was just opened. Add a unpin event to it if needed */
     private autoPin = (leaf?: WorkspaceLeaf|null) => {
-        if (this.isBasicLeaf(leaf) && !this.seenLeaves.has(leaf)) {
+        if (this.isBasicTab(leaf) && !this.seenLeaves.has(leaf)) {
             leaf.setPinned(true)
             leaf.on('pinned-change', this.onPinnedChangedHandler, {plugin: this, leaf: leaf})
             this.seenLeaves.add(leaf)
@@ -67,7 +67,7 @@ export default class AutoPinPlugin extends Plugin {
         this.app.workspace.onLayoutReady(() => {
             this.app.workspace.iterateAllLeaves(this.autoPin)
             this.registerEvent(this.app.workspace.on('active-leaf-change', leaf => {
-                if (this.isBasicLeaf(leaf)) {
+                if (this.isBasicTab(leaf)) {
                     const duplicates = this.getDuplicateLeaves(leaf)
                     // Close and switch to existing if enabled, and leaf was just opened
                     if (this.settings.switchToExisting && !this.seenLeaves.has(leaf) && duplicates.length > 0) {
