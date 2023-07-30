@@ -13,5 +13,5 @@ you set the "Close tab on unpin" and "Switch to existing tab" settings you creat
 
 ## License
 
-Obsidian AutoPin is licensed under the MIT license. Refer to [LICENSE](LICENSE.TXT) for more information.
+Obsidian AutoPin is licensed under the MIT license. Refer to [LICENSE](LICENSE.txt) for more information.
 
