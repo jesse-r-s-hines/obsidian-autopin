@@ -2,11 +2,11 @@ import { Plugin, WorkspaceLeaf } from 'obsidian';
 import { AutoPinSettingTab, AutoPinSettings, DEFAULT_SETTINGS } from './settings';
 
 interface PinnedChangedHandlerContext {
-    plugin: AutoPin,
+    plugin: AutoPinPlugin,
     leaf: WorkspaceLeaf,
 }
 
-export default class AutoPin extends Plugin {
+export default class AutoPinPlugin extends Plugin {
     settings: AutoPinSettings;
 
     /**
@@ -37,7 +37,7 @@ export default class AutoPin extends Plugin {
             }
         })
         // sort most recently used leaf first
-        duplicates.sort((a: any, b: any) => b.activeTime - a.activeTime)
+        duplicates.sort((a, b) => (b as any).activeTime - (a as any).activeTime)
         return duplicates
     }
 

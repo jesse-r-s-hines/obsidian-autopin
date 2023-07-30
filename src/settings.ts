@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import AutoPin from './main';
+import AutoPinPlugin from './main';
 
 export interface AutoPinSettings {
     closeOnUnpin: boolean,
@@ -12,9 +12,9 @@ export const DEFAULT_SETTINGS: AutoPinSettings = {
 }
 
 export class AutoPinSettingTab extends PluginSettingTab {
-    plugin: AutoPin;
+    plugin: AutoPinPlugin;
 
-    constructor(app: App, plugin: AutoPin) {
+    constructor(app: App, plugin: AutoPinPlugin) {
         super(app, plugin);
         this.plugin = plugin;
     }
