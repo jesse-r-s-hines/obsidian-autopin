@@ -1,6 +1,10 @@
 import { Plugin, WorkspaceLeaf } from 'obsidian';
 import { AutoPinSettingTab, AutoPinSettings, DEFAULT_SETTINGS } from './settings';
-// Remember to rename these classes and interfaces!
+
+interface PinnedChangedHandlerContext {
+    plugin: AutoPin,
+    leaf: WorkspaceLeaf,
+}
 
 export default class AutoPin extends Plugin {
     settings: AutoPinSettings;
@@ -37,17 +41,20 @@ export default class AutoPin extends Plugin {
         return duplicates
     }
 
+    private onPinnedChangedHandler = function(this: PinnedChangedHandlerContext, pinned: boolean) {
+        if (this.plugin.settings.closeOnUnpin && !pinned) {
+            this.leaf.detach() // detach means close
+        }
+    }
+
     /** Pin leaf if it was just opened. Add a unpin event to it if needed */
     private autoPin = (leaf?: WorkspaceLeaf|null) => {
         if (this.isBasicLeaf(leaf) && !this.seenLeaves.has(leaf)) {
             leaf.setPinned(true)
-            leaf.on('pinned-change', pinned => {
-                if (this.settings.closeOnUnpin && !pinned) {
-                    leaf.detach() // detach means close
-                }
-            })
+            leaf.on('pinned-change', this.onPinnedChangedHandler, {plugin: this, leaf: leaf})
             this.seenLeaves.add(leaf)
         }
+        this.registerEvent
     }
 
 
@@ -59,7 +66,7 @@ export default class AutoPin extends Plugin {
 
         this.app.workspace.onLayoutReady(() => {
             this.app.workspace.iterateAllLeaves(this.autoPin)
-            this.app.workspace.on('active-leaf-change', leaf => {
+            this.registerEvent(this.app.workspace.on('active-leaf-change', leaf => {
                 if (this.isBasicLeaf(leaf)) {
                     const duplicates = this.getDuplicateLeaves(leaf)
                     // Close and switch to existing if enabled, and leaf was just opened
@@ -70,11 +77,15 @@ export default class AutoPin extends Plugin {
                         this.autoPin(leaf)
                     }
                 }
-            })
+            }))
         })
     }
 
     onunload() {
+        super.onunload()
+        // Using `registerEvent` for the leaf.on('pinned-change') handlers will cause a memory leak as the event refs
+        // will never get removed from this._events, so remove them manually here.
+        this.app.workspace.iterateAllLeaves(leaf => { leaf.off('pinned-change', this.onPinnedChangedHandler) })
     }
 
     async loadSettings() {
