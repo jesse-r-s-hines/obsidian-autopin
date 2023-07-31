@@ -93,10 +93,13 @@ export default class AutoPinPlugin extends Plugin {
                         if (item.section == 'close') {
                             const originalCallback = item.callback
                             item.onClick((evt: any) => {
+                                const tabs = this.getAllBasicTabs()
+                                const originalPinned = new Set(tabs.filter(l => (l as any).pinned))
+
                                 this.disableCloseOnUnpin = true
-                                this.getAllBasicTabs().forEach(leaf => leaf.setPinned(false))
+                                tabs.forEach(leaf => leaf.setPinned(false))
                                 originalCallback(evt)
-                                this.getAllBasicTabs().forEach(leaf => leaf.setPinned(true))
+                                this.getAllBasicTabs().forEach(leaf => leaf.setPinned(originalPinned.has(leaf)))
                                 this.disableCloseOnUnpin = false
                             })
                         }
