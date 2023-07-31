@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { Plugin, WorkspaceLeaf, View } from 'obsidian';
 import { AutoPinSettingTab, AutoPinSettings, DEFAULT_SETTINGS } from './settings';
 
 interface PinnedChangedHandlerContext {
@@ -64,11 +64,53 @@ export default class AutoPinPlugin extends Plugin {
         }
     }
 
+    /** Unpin tab (without closing) */
+    private unpin = (leaf: WorkspaceLeaf) => {
+        this.disableCloseOnUnpin = true
+        leaf.setPinned(false)
+        this.disableCloseOnUnpin = false
+    }
+
     async onload() {
         await this.loadSettings();
 
         // This adds a settings tab so the user can configure various aspects of the plugin
         this.addSettingTab(new AutoPinSettingTab(this.app, this));
+
+        this.addCommand({
+            id: 'unpin',
+            name: 'Unpin tab without closing',
+            checkCallback: (checking: boolean) => {
+                const activeLeaf = this.app.workspace.getActiveViewOfType(View)?.leaf
+                if (this.settings.closeOnUnpin && this.isBasicTab(activeLeaf)) {
+                    if (!checking) {
+                        this.unpin(activeLeaf)
+                    }
+                    return true;
+                }
+            },
+        });
+
+        this.addCommand({
+            id: 'unpin-all',
+            name: 'Unpin all tabs without closing',
+            checkCallback: (checking: boolean) => {
+                if (this.settings.closeOnUnpin) {
+                    if (!checking) {
+                        this.getAllBasicTabs().forEach(l => this.unpin(l))
+                    }
+                    return true;
+                }
+            },
+        });
+
+        this.addCommand({
+            id: 'pin-all',
+            name: 'Pin all tabs',
+            callback: () => {
+                this.getAllBasicTabs().forEach(l => l.setPinned(true))
+            },
+        });
 
         this.app.workspace.onLayoutReady(() => {
             this.getAllBasicTabs().forEach(leaf => this.autoPin(leaf))
@@ -96,14 +138,23 @@ export default class AutoPinPlugin extends Plugin {
                                 const tabs = this.getAllBasicTabs()
                                 const originalPinned = new Set(tabs.filter(l => (l as any).pinned))
 
-                                this.disableCloseOnUnpin = true
-                                tabs.forEach(leaf => leaf.setPinned(false))
+                                tabs.forEach(leaf => this.unpin(leaf))
                                 originalCallback(evt)
-                                this.getAllBasicTabs().forEach(leaf => leaf.setPinned(originalPinned.has(leaf)))
-                                this.disableCloseOnUnpin = false
+                                this.getAllBasicTabs().forEach(leaf => {
+                                    if (originalPinned.has(leaf)) {
+                                        leaf.setPinned(true)
+                                    }
+                                })
                             })
                         }
                     });
+
+                    menu.addItem(item => item
+                        .setSection("pane")
+                        .setTitle("Unpin without closing")
+                        .setIcon("lucide-pin")
+                        .onClick(() => { if (leaf) { this.unpin(leaf) } })
+                    )
                 }
             }))
         })
