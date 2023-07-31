@@ -77,7 +77,7 @@ export default class AutoPinPlugin extends Plugin {
                     const duplicates = this.getDuplicateLeaves(leaf)
                     // Close and switch to existing if enabled, and leaf was just opened
                     if (this.settings.switchToExisting && !this.seenLeaves.has(leaf) && duplicates.length > 0) {
-                        this.app.workspace.setActiveLeaf(duplicates[0])
+                        this.app.workspace.setActiveLeaf(duplicates[0], {focus: true})
                         leaf.detach() // close new leaf
                     } else {
                         this.autoPin(leaf)
