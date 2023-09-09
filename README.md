@@ -15,3 +15,6 @@ you set the "Close tab on unpin" and "Switch to existing tab" settings you creat
 
 Obsidian AutoPin is licensed under the MIT license. Refer to [LICENSE](LICENSE.txt) for more information.
 
+## Alternatives
+
+Another plugin that implements similar behavior without using pinning is [Obsidian Opener](https://github.com/aidan-gibson/obsidian-opener).
