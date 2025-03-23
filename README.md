@@ -1,3 +1,4 @@
+# Archived: Check out [open-tab-settings](https://github.com/jesse-r-s-hines/obsidian-open-tab-settings) instead which provides new-tab behavior without using pins
 # Obsidian AutoPin
 
 Automatically pin all tabs by default so don't have to worry about accidentally losing a tab you had open previously. If
